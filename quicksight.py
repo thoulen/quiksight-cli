@@ -307,6 +307,14 @@ def setDashboard(dashboard, template, dataset, target , dashboardDstName, dstGro
                             "quicksight:DescribeDashboardPermissions",
                             "quicksight:UpdateDashboardPublishedVersion"
                         ]
+                    },
+                    {
+                        "Principal": f"arn:aws:quicksight:eu-west-1:{target}:namespace/default",
+                        "Actions": [
+                            "quicksight:DescribeDashboard",
+                            "quicksight:ListDashboardVersions",
+                            "quicksight:QueryDashboard"
+                        ]
                     }
                 ]
 
