@@ -35,7 +35,7 @@ def get_config(parser):
                         help="Copy command [dashboardname:version] ")
     parser_copy_dashboard.add_argument("--data-set-name", action="store", dest="myDstDataSetName",default="",
                         help="Destination data set name ")
-    parser_copy_dashboard.add_argument("--comment", action="store", dest="myComment",default="",
+    parser_copy_dashboard.add_argument("--comment", action="store", dest="myComment",default=None,
                         help="Comment for Template creation")
     parser_copy_dashboard.add_argument("--dst-dashaboard-name", action="store", dest="myDstDashboard",default=None,
                             help="Comment for Template creation")
@@ -224,6 +224,8 @@ def setDashboard(dashboard, template, dataset, target , dashboardDstName, dstGro
          if error.response['Error']['Code'] != 'ResourceNotFoundException':
             logger.info(f'Dashboard {dashboardDstName} not Found')
 
+    if comment is None:
+       comment = "-"
 
     # ADD some specific permissions?
     entry =  {
@@ -254,12 +256,15 @@ def setDashboard(dashboard, template, dataset, target , dashboardDstName, dstGro
                         }
                     }
                 }
+ 
+    logger.debug(f'Dasboard entry : {entry} ')
 
 
     if item is None:
-        entry = quicksight[target].create_dashboard(**entry)
         logger.info(f'Dasboard created in target account : {dashboardDstName} ')
+        entry = quicksight[target].create_dashboard(**entry)
     else:
+        logger.info(f'Dasboard updated in target account : {dashboardDstName} ')
         entry = quicksight[target].update_dashboard(**entry)
         logger.info(f'Dasboard updated in target account : {dashboardDstName} ')
 
@@ -320,7 +325,8 @@ def getDataSetId(myDstDataSetName,target):
 
     for item in data_set['DataSetSummaries']:
         if item['Name'] == myDstDataSetName:
-            logger.info(f'Find Data set in target account : {item}')
+            logger.info(f"Find Data set in target account : {item['Arn']}")
+            logger.debug(f'Find Data set in target account : {item}')
             return item
 
     return None
@@ -381,8 +387,8 @@ def copyDashboard(config):
     setTemplatePerm(template, dst, src)
 
     #Fetch dataset ARN
-    #dataSet = getDataSetId(config.myDstDataSetName,dst)
-    dataSet = {'Arn': config.myDstDataSetName}
+    dataSet = getDataSetId(config.myDstDataSetName,dst)
+    #dataSet = {'Arn': config.myDstDataSetName}
 
     #Create / Update Dashboard
     setDashboard(dashboard, template, dataSet, dst , config.myDstDashboard , config.myDstGroupName, config.myComment)
